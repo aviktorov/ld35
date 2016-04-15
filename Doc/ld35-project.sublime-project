@@ -2,7 +2,9 @@
 	"folders":
 	[
 		{
-			"path": "D:\\Development\\Projects\\LD35Game"
+			"path": "D:\\Development\\Projects\\LD35Game",
+			"file_exclude_patterns": ["*.csproj","*.sln","*.meta"],
+			"folder_exclude_patterns": ["Library"]
 		}
 	]
 }
