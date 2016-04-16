@@ -31,6 +31,7 @@ public class ShapeshiftScanner : MonoBehaviour {
 		offset -= captureCamera.transform.position;
 		
 		RaycastHit hit;
+		float maxHeight = 20.0f;
 		for(int x = 0; x < display.sizeX; x++) {
 			for(int y = 0; y < display.sizeY; y++) {
 				
@@ -38,13 +39,13 @@ public class ShapeshiftScanner : MonoBehaviour {
 				Color color = pixels[y * display.sizeX + x];
 				
 				// Height
-				Vector3 position = new Vector3(x,10.0f,y) - offset;
+				Vector3 position = new Vector3(x,maxHeight,y) - offset;
 				
 				// Raycast like a hell, cause we can't read the depth directly ;)
-				float height = 0.0f;
+				float height = maxHeight;
 				
 				if(Physics.Raycast(position,-Vector3.up,out hit)) {
-					height = 10.0f - hit.distance;
+					height = maxHeight - hit.distance;
 				}
 				
 				display.SetPixelRaw(x,y,height,color);
