@@ -22,7 +22,7 @@ public class ShapeshiftTester : MonoBehaviour {
 		
 		for(int x = 0; x < display.sizeX; x++) {
 			for(int y = 0; y < display.sizeX; y++) {
-				bool isBorder = ((x == 0) || (y == 0) || (x == display.sizeX - 1) || (y == display.sizeY - 1));
+				bool isBorder = false; //((x == 0) || (y == 0) || (x == display.sizeX - 1) || (y == display.sizeY - 1));
 				float height = isBorder ? 10.0f : HeightFunc(x,y,t);
 				Color color = isBorder ? Color.white : ColorFunc(x,y,t);
 				display.SetPixelRaw(x,y,height,color);

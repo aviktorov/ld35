@@ -38,11 +38,13 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 	}
 	
 	private void Start() {
+		Vector3 offset = new Vector3(0.5f,0.0f,0.5f);
+		
 		for(int x = 0; x < sizeX; x++) {
 			for(int y = 0; y < sizeY; y++) {
 				int id = index(x,y);
 				
-				Vector3 position = new Vector3(x,0.0f,y);
+				Vector3 position = new Vector3(x,0.0f,y) + offset;
 				
 				GameObject bar = GameObject.Instantiate(prefab,position,Quaternion.identity) as GameObject;
 				display[id].bar = bar;
@@ -53,6 +55,22 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 				display[id].color = Color.white;
 			}
 		}
+		
+		Vector3 min = transform.position;
+		Vector3 max = min + new Vector3(sizeX,20.0f,sizeY);
+		min.y = -20.0f;
+		
+		BoxCollider collider = gameObject.AddComponent<BoxCollider>();
+		collider.isTrigger = true;
+		collider.center = (min + max) * 0.5f;
+		collider.size = (max - min);
+	}
+	
+	private void OnDrawGizmos() {
+		Vector3 min = transform.position;
+		Vector3 max = min + new Vector3(sizeX,20.0f,sizeY);
+		min.y = -20.0f;
+		Gizmos.DrawWireCube((min + max) * 0.5f,(max - min));
 	}
 	
 	private void Update() {

@@ -49,7 +49,7 @@ public class ShapeshiftScanner : MonoBehaviour {
 				// FIXME: sync with color info
 				float height = 0.0f;
 				
-				if(Physics.BoxCast(position,Vector3.one * 0.5f,-Vector3.up,out hit)) {
+				if(Physics.BoxCast(position,Vector3.one * 0.25f,-Vector3.up,out hit)) {
 					height = maxHeight - hit.distance;
 				}
 				
