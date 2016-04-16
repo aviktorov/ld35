@@ -20,7 +20,8 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 	internal struct Pixel {
 		public GameObject bar;
 		public Transform barTransform;
-		public Renderer barRenderer;
+		public Material barMaterial;
+		public int barId;
 		public Color color;
 		public float height;
 	}
@@ -50,7 +51,8 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 				display[id].bar = bar;
 				display[id].barTransform = bar.GetComponent<Transform>();
 				display[id].barTransform.parent = cachedTransform;
-				display[id].barRenderer = bar.GetComponentInChildren<Renderer>();
+				display[id].barMaterial = bar.GetComponentInChildren<Renderer>().material;
+				display[id].barId = Shader.PropertyToID("_Color");
 				display[id].height = 0.0f;
 				display[id].color = Color.white;
 			}
@@ -73,26 +75,24 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 		Gizmos.DrawWireCube((min + max) * 0.5f,(max - min));
 	}
 	
-	private void Update() {
+	private void LateUpdate() {
 		
-		// TODO: parallelize, ~130ms, very slow
-		// GS / VS mesh displacement & coloring + collider movement?
 		float dHeight = heightSmoothness * Time.deltaTime;
 		float dColor = colorSmoothness * Time.deltaTime;
 		
 		for(int x = 0; x < sizeX; x++) {
 			for(int y = 0; y < sizeY; y++) {
 				int id = index(x,y);
-				
 				Vector3 currentPosition = display[id].barTransform.position;
 				Vector3 targetPosition = currentPosition;
 				targetPosition.y = display[id].height;
 				
-				Color currentColor = display[id].barRenderer.material.color;
+				int colorId = display[id].barId;
+				Color currentColor = display[id].barMaterial.GetColor(colorId);
 				Color targetColor = display[id].color;
 				
 				display[id].barTransform.position = Vector3.Lerp(currentPosition,targetPosition,dHeight);
-				display[id].barRenderer.material.color = Color.Lerp(currentColor,targetColor,dColor);
+				display[id].barMaterial.SetColor(colorId,Color.Lerp(currentColor,targetColor,dColor));
 			}
 		}
 	}
