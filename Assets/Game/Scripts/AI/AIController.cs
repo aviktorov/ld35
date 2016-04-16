@@ -3,7 +3,7 @@ using System.Collections;
 
 internal enum AIState {
 	Text,
-	
+	Idle,
 }
 
 public class AIController : MonoBehaviour {
