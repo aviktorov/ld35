@@ -7,17 +7,21 @@ public class ShapeshiftScanner : MonoBehaviour {
 	
 	private ShapeshiftDisplay display = null;
 	private Texture2D cpuData = null;
+	private RenderTexture gpuData = null;
 	
 	private void Start() {
 		display = ShapeshiftDisplay.instance;
 		cpuData = new Texture2D(display.sizeX,display.sizeY,TextureFormat.RGB24,false);
+		gpuData = new RenderTexture(display.sizeX,display.sizeY,0,RenderTextureFormat.ARGB32);
+		
+		captureCamera.targetTexture = gpuData;
 	}
 	
 	private void Update() {
 		
 		// Copy RT to CPU
 		RenderTexture oldRT = RenderTexture.active;
-		RenderTexture.active = captureCamera.targetTexture;
+		RenderTexture.active = gpuData;
 		
 		cpuData.ReadPixels(new Rect(0,0,display.sizeX,display.sizeY),0,0,false);
 		cpuData.Apply();

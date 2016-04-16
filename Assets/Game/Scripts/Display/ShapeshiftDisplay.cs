@@ -11,8 +11,6 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 	[Range(1,100)]
 	public int sizeY = 20;
 	
-	public float scale = 1.0f;
-	
 	[Header("Appearance")]
 	public float heightSmoothness = 5.0f;
 	public float colorSmoothness = 5.0f;
@@ -44,7 +42,7 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 			for(int y = 0; y < sizeY; y++) {
 				int id = index(x,y);
 				
-				Vector3 position = new Vector3(x * scale,0.0f,y * scale);
+				Vector3 position = new Vector3(x,0.0f,y);
 				
 				GameObject bar = GameObject.Instantiate(prefab,position,Quaternion.identity) as GameObject;
 				display[id].bar = bar;
