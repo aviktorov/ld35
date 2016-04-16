@@ -74,7 +74,9 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 	}
 	
 	private void Update() {
-		// TODO: parallelize?
+		
+		// TODO: parallelize, ~130ms, very slow
+		// GS / VS mesh displacement & coloring + collider movement?
 		float dHeight = heightSmoothness * Time.deltaTime;
 		float dColor = colorSmoothness * Time.deltaTime;
 		

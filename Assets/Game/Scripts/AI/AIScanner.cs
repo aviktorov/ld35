@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ShapeshiftScanner : MonoBehaviour {
+public class AIScanner : MonoBehaviour {
 	
 	public Camera captureCamera = null;
+	public float scale = 1.0f;
 	
 	private ShapeshiftDisplay display = null;
 	private Texture2D cpuColorData = null;
@@ -43,15 +44,17 @@ public class ShapeshiftScanner : MonoBehaviour {
 				Color color = pixels[y * display.sizeX + x];
 				
 				// Height
-				Vector3 position = new Vector3(x,maxHeight,y) - offset;
+				Vector3 position = new Vector3(x,0.0f,y) - offset;
 				
 				// Boxcast like a hell, cause we can't read the depth directly ;)
 				// FIXME: sync with color info
 				float height = 0.0f;
 				
-				if(Physics.BoxCast(position,Vector3.one * 0.25f,-Vector3.up,out hit)) {
+				if(Physics.BoxCast(position,Vector3.one * 0.25f,-Vector3.up,out hit,Quaternion.identity,maxHeight)) {
 					height = maxHeight - hit.distance;
 				}
+				
+				height *= scale;
 				
 				display.SetPixelRaw(x,y,height,color);
 			}
