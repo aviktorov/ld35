@@ -6,13 +6,13 @@ public class ShapeshiftScanner : MonoBehaviour {
 	public Camera captureCamera = null;
 	
 	private ShapeshiftDisplay display = null;
-	private Texture2D cpuData = null;
+	private Texture2D cpuColorData = null;
 	private RenderTexture gpuData = null;
 	
 	private void Start() {
 		display = ShapeshiftDisplay.instance;
-		cpuData = new Texture2D(display.sizeX,display.sizeY,TextureFormat.RGB24,false);
-		gpuData = new RenderTexture(display.sizeX,display.sizeY,0,RenderTextureFormat.ARGB32);
+		cpuColorData = new Texture2D(display.sizeX,display.sizeY,TextureFormat.RGB24,false);
+		gpuData = new RenderTexture(display.sizeX,display.sizeY,24);
 		
 		captureCamera.targetTexture = gpuData;
 	}
@@ -23,15 +23,15 @@ public class ShapeshiftScanner : MonoBehaviour {
 		RenderTexture oldRT = RenderTexture.active;
 		RenderTexture.active = gpuData;
 		
-		cpuData.ReadPixels(new Rect(0,0,display.sizeX,display.sizeY),0,0,false);
-		cpuData.Apply();
+		cpuColorData.ReadPixels(new Rect(0,0,display.sizeX,display.sizeY),0,0,false);
+		cpuColorData.Apply();
 		
 		RenderTexture.active = oldRT;
 		
 		// Fill shapeshift display
-		Color[] pixels = cpuData.GetPixels(0,0,display.sizeX,display.sizeY);
+		Color[] pixels = cpuColorData.GetPixels(0,0,display.sizeX,display.sizeY);
 		
-		Vector3 offset = new Vector3(display.sizeX * 0.5f + 0.5f,0.0f,display.sizeY * 0.5f + 0.5f);
+		Vector3 offset = new Vector3(display.sizeX * 0.5f - 0.5f,0.0f,display.sizeY * 0.5f - 0.5f);
 		offset -= captureCamera.transform.position;
 		
 		RaycastHit hit;
@@ -45,10 +45,11 @@ public class ShapeshiftScanner : MonoBehaviour {
 				// Height
 				Vector3 position = new Vector3(x,maxHeight,y) - offset;
 				
-				// Raycast like a hell, cause we can't read the depth directly ;)
-				float height = maxHeight;
+				// Boxcast like a hell, cause we can't read the depth directly ;)
+				// FIXME: sync with color info
+				float height = 0.0f;
 				
-				if(Physics.Raycast(position,-Vector3.up,out hit)) {
+				if(Physics.BoxCast(position,Vector3.one * 0.5f,-Vector3.up,out hit)) {
 					height = maxHeight - hit.distance;
 				}
 				
