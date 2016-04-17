@@ -21,6 +21,7 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 		public GameObject bar;
 		public Transform barTransform;
 		public Material barMaterial;
+		public Rigidbody barBody;
 		public int barId;
 		public Color color;
 		public float height;
@@ -53,6 +54,7 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 				display[id].barTransform.parent = cachedTransform;
 				display[id].barTransform.localPosition = position;
 				display[id].barMaterial = bar.GetComponentInChildren<Renderer>().material;
+				display[id].barBody = bar.GetComponent<Rigidbody>();
 				display[id].barId = Shader.PropertyToID("_Color");
 				display[id].height = 0.0f;
 				display[id].color = Color.white;
@@ -92,10 +94,20 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 				Color currentColor = display[id].barMaterial.GetColor(colorId);
 				Color targetColor = display[id].color;
 				
-				display[id].barTransform.position = Vector3.Lerp(currentPosition,targetPosition,dHeight);
-				display[id].barMaterial.SetColor(colorId,Color.Lerp(currentColor,targetColor,dColor));
+				if(display[id].barBody.isKinematic) {
+					display[id].barTransform.position = Vector3.Lerp(currentPosition,targetPosition,dHeight);
+					display[id].barMaterial.SetColor(colorId,Color.Lerp(currentColor,targetColor,dColor));
+				}
+				else {
+					display[id].barMaterial.SetColor(colorId,Color.Lerp(currentColor,Color.black,dColor));
+				}
 			}
 		}
+	}
+	
+	public void SetPixelEnabled(int x,int y,bool enabled) {
+		int id = index(x,y);
+		display[id].barBody.isKinematic = enabled;
 	}
 	
 	public void SetPixelRaw(int x,int y,float height,Color color) {

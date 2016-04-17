@@ -43,6 +43,7 @@ public class PlayerController : MonoBehaviour {
 			onAir = true;
 			currentCooldown = cooldown;
 			cachedBody.AddForce(Vector3.up * jumpForce,ForceMode.VelocityChange);
+			cachedBody.velocity = cachedBody.velocity.WithY(0.0f);
 		}
 	}
 	
