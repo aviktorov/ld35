@@ -5,21 +5,25 @@ public class PlayerController : MonoBehaviour {
 	
 	public float movementSpeed = 3.0f;
 	public float jumpForce = 10.0f;
-	public float cooldown = 0.3f;
+	public float slopeThreshold = 0.5f;
 	
+	private ShapeshiftDisplay display;
 	private Rigidbody cachedBody;
-	private bool onAir;
-	private float currentCooldown;
+	private Transform cachedTransform;
+	private Transform currentPlatform;
+	private bool canJump;
 	
-	private void Start() {
+	private void Awake() {
 		cachedBody = GetComponent<Rigidbody>();
-		onAir = false;
-		currentCooldown = 0.0f;
+		cachedTransform = GetComponent<Transform>();
 	}
 	
+	private void Start() {
+		canJump = false;
+		currentPlatform = null;
+		display = ShapeshiftDisplay.instance;
+	}
 	private void Update() {
-		currentCooldown -= Time.deltaTime;
-		
 		Vector3 cameraRight = Camera.main.transform.right;
 		cameraRight.y = 0;
 		
@@ -39,31 +43,36 @@ public class PlayerController : MonoBehaviour {
 		
 		cachedBody.velocity = movement;
 		
-		if(!onAir && Input.GetButton("Jump")) {
-			onAir = true;
-			currentCooldown = cooldown;
-			cachedBody.AddForce(Vector3.up * jumpForce,ForceMode.VelocityChange);
-			cachedBody.velocity = cachedBody.velocity.WithY(0.0f);
-		}
-	}
-	
-	private void StayOnGround(Collision collision) {
-		if(currentCooldown > 0.0f) return;
-		if(!onAir) return;
+		RaycastHit hit;
 		
-		foreach(ContactPoint c in collision.contacts) {
-			if(c.normal.z < Mathf.Epsilon) continue;
-			
-			onAir = false;
-			break;
+		if(Physics.Raycast(cachedTransform.position + Vector3.up * Mathf.Epsilon,Vector3.down,out hit)) {
+			if(hit.distance > slopeThreshold) currentPlatform = null;
+		}
+		
+		if(currentPlatform != null) {
+			cachedTransform.position = cachedTransform.position.WithY(currentPlatform.position.y);
+		}
+		
+		if(canJump && Input.GetButton("Jump")) {
+			cachedBody.velocity = cachedBody.velocity.WithY(0.0f);
+			cachedBody.AddForce(Vector3.up * jumpForce,ForceMode.VelocityChange);
+			currentPlatform = null;
+			canJump = false;
 		}
 	}
 	
 	private void OnCollisionEnter(Collision collision) {
-		StayOnGround(collision);
-	}
-	
-	private void OnCollisionStay(Collision collision) {
-		StayOnGround(collision);
+		bool hasGround = false;
+		
+		foreach(ContactPoint c in collision.contacts) {
+			if(c.normal.y < 0.99f) continue;
+			hasGround = true;
+			break;
+		}
+		
+		if(hasGround) {
+			currentPlatform = collision.transform;
+			canJump = true;
+		}
 	}
 }

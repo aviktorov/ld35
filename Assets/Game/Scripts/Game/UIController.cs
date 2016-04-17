@@ -9,6 +9,7 @@ public class UIController : MonoSingleton<UIController> {
 		GUILayout.BeginVertical("box");
 		GUILayout.Label("Controls:");
 		GUILayout.Label("W / S / A / D: move");
+		GUILayout.Label("Space: jump");
 		GUILayout.Label("Q / R: rotate the camera");
 		GUILayout.EndVertical();
 		GUILayout.BeginVertical();

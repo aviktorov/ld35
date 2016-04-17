@@ -43,16 +43,16 @@ public class OrbitCamera : MonoBehaviour {
 			Mathf.Sin(theta * Mathf.Deg2Rad) * Mathf.Sin(phi * Mathf.Deg2Rad)
 		) * radius;
 		
-		cachedTransform.position = newPosition;
+		cachedTransform.position = Vector3.Lerp(cachedTransform.position,newPosition,smoothness * Time.deltaTime);
 		cachedTransform.LookAt(target);
 		
 		// Navigation
-		if(Input.GetKeyDown(KeyCode.Q)) {
-			targetPhi -= rotationAmount;
+		if(Input.GetKey(KeyCode.Q)) {
+			targetPhi -= rotationAmount * Time.deltaTime;
 		}
 		
-		if(Input.GetKeyDown(KeyCode.E)) {
-			targetPhi += rotationAmount;
+		if(Input.GetKey(KeyCode.E)) {
+			targetPhi += rotationAmount * Time.deltaTime;
 		}
 	}
 }
