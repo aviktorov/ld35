@@ -21,9 +21,10 @@ public class ShapeshiftRender : MonoBehaviour {
 				float v = (float)y / display.sizeY;
 				
 				Color color = texture.GetPixelBilinear(u,v);
-				if(blendColor) color *= display.GetPixelColor(x,y);
 				float height = Mathf.Max(color.r,Mathf.Max(color.g,color.b));
 				if(inverted) height = 1.0f - height;
+				
+				if(blendColor) color *= display.GetPixelColor(x,y);
 				
 				height *= scale;
 				height += display.GetPixelHeight(x,y);
