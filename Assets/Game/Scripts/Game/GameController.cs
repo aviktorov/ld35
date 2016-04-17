@@ -18,6 +18,8 @@ public class GameController : MonoSingleton<GameController> {
 	
 	public AudioSource cameraAudio;
 	public AudioClip introSpeech;
+	public AudioClip jokeIntroSpeech;
+	public AudioClip[] jokeSpeeches;
 	public float idleTime = 10.0f;
 	public float punishTime = 30.0f;
 	public float punishInterval = 0.2f;
@@ -105,6 +107,8 @@ public class GameController : MonoSingleton<GameController> {
 	private void PrepareJoke() {
 		stateTime = jokeTime;
 		state = GameState.Joke;
+		stateSubTime = 1.0f;
+		cameraAudio.PlayOneShot(jokeIntroSpeech);
 	}
 	
 	private void PrepareSuicide() {
@@ -128,6 +132,7 @@ public class GameController : MonoSingleton<GameController> {
 	
 	private void ProcessIdle() {
 		if(stateTime < 0.0f) {
+			
 			int decision = Random.Range(0,1000);
 			if(decision < 800) PrepareLava();
 			else if(decision < 999) PrepareJoke();
@@ -161,6 +166,11 @@ public class GameController : MonoSingleton<GameController> {
 		Clear(0.0f,Color.black);
 		
 		if(stateTime > 0.0f) return;
+		
+		if(stateSubTime > 0.0f) {
+			cameraAudio.PlayOneShot(jokeSpeeches[Random.Range(0,jokeSpeeches.Length)]);
+			stateSubTime = 0.0f;
+		}
 		
 		Vector3 likeOffset = new Vector3(display.sizeX * 0.8f,0.0f,display.sizeY * 0.5f);
 		Vector3 dislikeOffset = new Vector3(display.sizeX * 0.2f,0.0f,display.sizeY * 0.5f);
