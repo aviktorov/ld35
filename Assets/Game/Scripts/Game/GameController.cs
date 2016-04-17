@@ -28,7 +28,6 @@ public class GameController : MonoSingleton<GameController> {
 	public float angerTime = 5.0f;
 	public float encourageTime = 5.0f;
 	public float jokeTime = 5.0f;
-	public float suicideTime = 5.0f;
 	public float sanityDropInterval = 5.0f;
 	public Texture2D[] punishmentLevels;
 	public Texture2D[] lavaLevels;
@@ -106,7 +105,7 @@ public class GameController : MonoSingleton<GameController> {
 	}
 	
 	private void PrepareSuicide() {
-		stateTime = suicideTime;
+		stateTime = 0.0f;
 		state = GameState.Suicide;
 	}
 	
@@ -126,9 +125,9 @@ public class GameController : MonoSingleton<GameController> {
 	
 	private void ProcessIdle() {
 		if(stateTime < 0.0f) {
-			int decision = Random.Range(0,300);
-			if(decision < 130) PrepareLava();
-			else if(decision < 260) PrepareJoke();
+			int decision = Random.Range(0,1000);
+			if(decision < 800) PrepareLava();
+			else if(decision < 999) PrepareJoke();
 			else PrepareSuicide();
 			
 			return;
@@ -209,18 +208,13 @@ public class GameController : MonoSingleton<GameController> {
 			PrepareAnger();
 			return;
 		}
-		// check if the player touched the lava
 		
 		DrawLevel(lavaScale,false,lavaLevels[stateIndex]);
 		DrawLava(lavaLevel);
 	}
 	
 	private void ProcessSuicide() {
-		if(stateTime < 0.0f) {
-			PrepareIdle();
-			return;
-		}
-		
+		// There's no escape, you musi kill yourself ;)
 		DrawSuicide();
 	}
 	
