@@ -29,6 +29,7 @@ public class GameController : MonoSingleton<GameController> {
 	public float encourageTime = 5.0f;
 	public float jokeTime = 5.0f;
 	public float suicideTime = 5.0f;
+	public float sanityDropInterval = 5.0f;
 	public Texture2D[] punishmentLevels;
 	public Texture2D[] lavaLevels;
 	public Texture2D[] bonusLevels;
@@ -41,6 +42,7 @@ public class GameController : MonoSingleton<GameController> {
 	private float stateSubTime;
 	private int stateIndex;
 	private float angerLevel;
+	private float sanityDropTime;
 	
 	private void Start() {
 		display = ShapeshiftDisplay.instance;
@@ -113,7 +115,7 @@ public class GameController : MonoSingleton<GameController> {
 		Vector3 distance = playerTransform.position - offset - roomTransform.position;
 		distance.y = 0.0f;
 		
-		if(distance.sqrMagnitude < 20.0f) {
+		if(PlayerController.instance.OnGround() && distance.sqrMagnitude < 20.0f) {
 			PrepareIdle();
 			return;
 		}
@@ -167,12 +169,12 @@ public class GameController : MonoSingleton<GameController> {
 		Vector3 dislineDistance = playerTransform.position - dislikeOffset - roomTransform.position;
 		dislineDistance.y = 0.0f;
 		
-		if(likeDistance.sqrMagnitude < 20.0f) {
+		if(PlayerController.instance.OnGround() && likeDistance.sqrMagnitude < 20.0f) {
 			PrepareEncourage();
 			return;
 		}
 		
-		if(dislineDistance.sqrMagnitude < 20.0f) {
+		if(PlayerController.instance.OnGround() && dislineDistance.sqrMagnitude < 20.0f) {
 			PrepareAnger();
 			return;
 		}
@@ -223,9 +225,27 @@ public class GameController : MonoSingleton<GameController> {
 	}
 	
 	private void ProcessSanity() {
-		if(angerLevel > 10.0f) {
-			// TODO: chase player and remove platforms
+		if(angerLevel > 5.0f) {
+			if(PlayerController.instance.OnGround()) {
+				Vector3 playerRelativePosition = playerTransform.position - roomTransform.position;
+				int x = (int)Mathf.Floor(playerRelativePosition.x);
+				int y = (int)Mathf.Floor(playerRelativePosition.z);
+				
+				sanityDropTime -= Time.deltaTime;
+				
+				Color c = Color.white * Mathf.Clamp01(sanityDropTime / sanityDropInterval);
+				display.SetPixelColor(x,y,c);
+				
+				if(sanityDropTime < 0.0f) {
+					display.SetPixelEnabled(x,y,false);
+					sanityDropTime = sanityDropInterval;
+				}
+			}
+			else {
+				sanityDropTime = sanityDropInterval;
+			}
 		}
+		
 		DrawSanity();
 	}
 	
