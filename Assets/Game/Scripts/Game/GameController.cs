@@ -19,6 +19,10 @@ public class GameController : MonoSingleton<GameController> {
 	public float punishTime = 30.0f;
 	public float punishInterval = 0.2f;
 	public float punishScale = 1.0f;
+	public float lavaTime = 30.0f;
+	public float lavaScale = 20.0f;
+	public float initialAngerScale = 1.0f;
+	public float angerIncrement = 0.2f;
 	public Texture2D[] punishmentLevels;
 	public Texture2D[] lavaLevels;
 	public Texture2D[] bonusLevels;
@@ -30,12 +34,14 @@ public class GameController : MonoSingleton<GameController> {
 	private float stateTime;
 	private float stateSubTime;
 	private int stateIndex;
+	private float angerScale;
 	
 	private void Start() {
 		display = ShapeshiftDisplay.instance;
 		state = GameState.Intro;
 		stateTime = 0.0f;
 		stateIndex = -1;
+		angerScale = initialAngerScale;
 	}
 	
 	private void Update() {
@@ -45,7 +51,30 @@ public class GameController : MonoSingleton<GameController> {
 			case GameState.Intro: ProcessIntro(); break;
 			case GameState.Idle: ProcessIdle(); break;
 			case GameState.Punishment: ProcessPunishment(); break;
+			case GameState.Lava: ProcessLava(); break;
 		}
+		
+		DrawAnger();
+	}
+	
+	private void PreparePunishment() {
+		stateTime = punishTime;
+		stateSubTime = punishInterval;
+		state = GameState.Punishment;
+		stateIndex = Random.Range(0,punishmentLevels.Length);
+		angerScale += angerIncrement;
+	}
+	
+	private void PrepareLava() {
+		stateTime = lavaTime;
+		stateSubTime = 0.0f;
+		state = GameState.Lava;
+		stateIndex = Random.Range(0,lavaLevels.Length);
+	}
+	
+	private void PrepareIdle() {
+		stateTime = idleTime;
+		state = GameState.Idle;
 	}
 	
 	private void ProcessIntro() {
@@ -54,8 +83,7 @@ public class GameController : MonoSingleton<GameController> {
 		distance.y = 0.0f;
 		
 		if(distance.sqrMagnitude < 20.0f) {
-			stateTime = idleTime;
-			state = GameState.Idle;
+			PrepareIdle();
 			return;
 		}
 		
@@ -64,10 +92,10 @@ public class GameController : MonoSingleton<GameController> {
 	
 	private void ProcessIdle() {
 		if(stateTime < 0.0f) {
-			stateTime = punishTime;
-			stateSubTime = punishInterval;
-			state = GameState.Punishment;
-			stateIndex = Random.Range(0,punishmentLevels.Length);
+			int decision = Random.Range(0,100);
+			
+			if(decision < 75) PreparePunishment();
+			else PrepareLava();
 			
 			return;
 		}
@@ -77,18 +105,34 @@ public class GameController : MonoSingleton<GameController> {
 	
 	private void ProcessPunishment() {
 		if(stateTime < 0.0f) {
-			stateTime = idleTime;
-			state = GameState.Idle;
+			PrepareIdle();
 			return;
 		}
 		
-		DrawLevel(punishScale,stateTime < punishTime,punishmentLevels[stateIndex]);
+		DrawLevel(punishScale,stateTime < punishTime * 0.5f,punishmentLevels[stateIndex]);
 		
 		stateSubTime -= Time.deltaTime;
 		if(stateSubTime < 0.0f) {
 			stateSubTime = punishInterval;
 			Punish();
 		}
+	}
+	
+	private void ProcessLava() {
+		if(stateTime < 0.0f) {
+			PrepareIdle();
+			return;
+		}
+		
+		float lavaLevel = lavaScale * 0.5f * (1.0f - Mathf.Clamp01(stateTime / lavaTime));
+		if(PlayerController.instance.OnGround() && playerTransform.position.y < lavaLevel) {
+			PreparePunishment();
+			return;
+		}
+		// check if the player touched the lava
+		
+		DrawLevel(lavaScale,false,lavaLevels[stateIndex]);
+		DrawLava(lavaLevel);
 	}
 	
 	private void DrawIntro() {
@@ -107,6 +151,24 @@ public class GameController : MonoSingleton<GameController> {
 				
 				Color color = (isBorder) ? Color.white : Color.Lerp(Color.white,Color.red,diff);
 				float height = (isBorder) ? 10.0f : diff * 2.0f;
+				
+				display.SetPixelRaw(x,y,height,color);
+			}
+		}
+	}
+	
+	private void DrawAnger() {
+		float t = Time.timeSinceLevelLoad;
+		
+		for(int x = 0; x < display.sizeX; x++) {
+			float dx = (float)x / display.sizeX;
+			for(int y = 0; y < display.sizeY; y++) {
+				float dy = (float)y / display.sizeY;
+				
+				Color color = display.GetPixelColor(x,y);
+				float height = display.GetPixelHeight(x,y);
+				
+				height += angerScale * Mathf.Cos(dx + t) * Mathf.Sin(dy + t);
 				
 				display.SetPixelRaw(x,y,height,color);
 			}
@@ -139,6 +201,19 @@ public class GameController : MonoSingleton<GameController> {
 				
 				height *= scale;
 				display.SetPixelRaw(x,y,height,color);
+			}
+		}
+	}
+	
+	private void DrawLava(float level) {
+		for(int x = 0; x < display.sizeX; x++) {
+			for(int y = 0; y < display.sizeY; y++) {
+				float height = display.GetPixelHeight(x,y);
+				float k = Mathf.Clamp01(height - level);
+				
+				Color color = display.GetPixelColor(x,y);
+				
+				display.SetPixelRaw(x,y,height,Color.Lerp(Color.red,color,k));
 			}
 		}
 	}

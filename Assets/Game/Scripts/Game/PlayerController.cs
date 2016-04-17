@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PlayerController : MonoBehaviour {
+public class PlayerController : MonoSingleton<PlayerController> {
 	
 	public float movementSpeed = 3.0f;
 	public float jumpForce = 10.0f;
@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour {
 	private Transform cachedTransform;
 	private Transform currentPlatform;
 	private bool canJump;
+	
+	public bool OnGround() {
+		return (currentPlatform != null);
+	}
 	
 	private void Awake() {
 		cachedBody = GetComponent<Rigidbody>();
