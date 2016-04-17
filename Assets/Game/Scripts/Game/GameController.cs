@@ -16,6 +16,8 @@ public enum GameState {
 
 public class GameController : MonoSingleton<GameController> {
 	
+	public AudioSource cameraAudio;
+	public AudioClip introSpeech;
 	public float idleTime = 10.0f;
 	public float punishTime = 30.0f;
 	public float punishInterval = 0.2f;
@@ -49,6 +51,7 @@ public class GameController : MonoSingleton<GameController> {
 		stateTime = 0.0f;
 		stateIndex = -1;
 		angerLevel = initialAngerLevel;
+		cameraAudio.PlayOneShot(introSpeech, 1.0f);
 	}
 	
 	private void Update() {
