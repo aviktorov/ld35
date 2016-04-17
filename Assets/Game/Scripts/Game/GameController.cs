@@ -3,15 +3,15 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 
 public enum GameState {
-	Intro,			// x AI explains to player some basic rules
-	Idle,			// x some pretty math func with nice colors
-	Punishment,		// x stay alive for N seconds
-	Lava,			// x don't touch the lava until it'll reach the bottom
+	Intro,			// AI explains to player some basic rules
+	Idle,			// some pretty math func with nice colors
+	Punishment,		// stay alive for N seconds
+	Lava,			// don't touch the lava until it'll reach the bottom
 	Joke,			// listen for stupid joke and have a choice
-	Encouraging,	// for obeying the AI
-	Anger,			// x for disliking the jokes, failing lava test
+	Encourage,		// for obeying the AI
+	Anger,			// for disliking the jokes, failing lava test
 	Suicide,		// AI asks player to commit suicide
-	Bonus			// mario endless?
+	Bonus			// (not implemented) mario endless?
 }
 
 public class GameController : MonoSingleton<GameController> {
@@ -24,7 +24,11 @@ public class GameController : MonoSingleton<GameController> {
 	public float lavaScale = 20.0f;
 	public float initialAngerScale = 1.0f;
 	public float angerIncrement = 0.2f;
+	public float angerDecrement = 0.2f;
 	public float angerTime = 5.0f;
+	public float encourageTime = 5.0f;
+	public float jokeTime = 5.0f;
+	public float suicideTime = 5.0f;
 	public Texture2D[] punishmentLevels;
 	public Texture2D[] lavaLevels;
 	public Texture2D[] bonusLevels;
@@ -55,6 +59,9 @@ public class GameController : MonoSingleton<GameController> {
 			case GameState.Punishment: ProcessPunishment(); break;
 			case GameState.Lava: ProcessLava(); break;
 			case GameState.Anger: ProcessAnger(); break;
+			case GameState.Encourage: ProcessEncourage(); break;
+			case GameState.Joke: ProcessJoke(); break;
+			case GameState.Suicide: ProcessSuicide(); break;
 		}
 		
 		DrawSanity();
@@ -65,7 +72,6 @@ public class GameController : MonoSingleton<GameController> {
 		stateSubTime = punishInterval;
 		state = GameState.Punishment;
 		stateIndex = Random.Range(0,punishmentLevels.Length);
-		angerScale += angerIncrement;
 	}
 	
 	private void PrepareLava() {
@@ -83,6 +89,23 @@ public class GameController : MonoSingleton<GameController> {
 	private void PrepareAnger() {
 		stateTime = angerTime;
 		state = GameState.Anger;
+		angerScale += angerIncrement;
+	}
+	
+	private void PrepareEncourage() {
+		stateTime = encourageTime;
+		state = GameState.Encourage;
+		angerScale -= angerDecrement;
+	}
+	
+	private void PrepareJoke() {
+		stateTime = jokeTime;
+		state = GameState.Joke;
+	}
+	
+	private void PrepareSuicide() {
+		stateTime = suicideTime;
+		state = GameState.Suicide;
 	}
 	
 	private void ProcessIntro() {
@@ -95,13 +118,16 @@ public class GameController : MonoSingleton<GameController> {
 			return;
 		}
 		
-		DrawIntro();
+		Clear(0.0f,Color.blue * 0.3f);
+		DrawWave(15.0f,display.sizeX * 0.5f,display.sizeY * 0.5f,4.0f,2.0f,Color.blue);
 	}
 	
 	private void ProcessIdle() {
 		if(stateTime < 0.0f) {
-			// TODO: suicide, joke
-			PrepareLava();
+			int decision = Random.Range(0,300);
+			if(decision < 130) PrepareLava();
+			else if(decision < 260) PrepareJoke();
+			else PrepareSuicide();
 			
 			return;
 		}
@@ -116,6 +142,43 @@ public class GameController : MonoSingleton<GameController> {
 		}
 		
 		DrawAnger();
+	}
+	
+	private void ProcessEncourage() {
+		if(stateTime < 0.0f) {
+			PrepareIdle();
+			return;
+		}
+		
+		DrawEncourage();
+	}
+	
+	private void ProcessJoke() {
+		Clear(0.0f,Color.black);
+		
+		if(stateTime > 0.0f) return;
+		
+		Vector3 likeOffset = new Vector3(display.sizeX * 0.8f,0.0f,display.sizeY * 0.5f);
+		Vector3 dislikeOffset = new Vector3(display.sizeX * 0.2f,0.0f,display.sizeY * 0.5f);
+		
+		Vector3 likeDistance = playerTransform.position - likeOffset - roomTransform.position;
+		likeDistance.y = 0.0f;
+		
+		Vector3 dislineDistance = playerTransform.position - dislikeOffset - roomTransform.position;
+		dislineDistance.y = 0.0f;
+		
+		if(likeDistance.sqrMagnitude < 20.0f) {
+			PrepareEncourage();
+			return;
+		}
+		
+		if(dislineDistance.sqrMagnitude < 20.0f) {
+			PrepareAnger();
+			return;
+		}
+		
+		DrawWave(15.0f,dislikeOffset.x,dislikeOffset.z,2.0f,2.0f,Color.red);
+		DrawWave(15.0f,likeOffset.x,likeOffset.z,2.0f,2.0f,Color.green);
 	}
 	
 	private void ProcessPunishment() {
@@ -150,24 +213,42 @@ public class GameController : MonoSingleton<GameController> {
 		DrawLava(lavaLevel);
 	}
 	
-	private void DrawIntro() {
+	private void ProcessSuicide() {
+		if(stateTime < 0.0f) {
+			PrepareIdle();
+			return;
+		}
 		
+		DrawSuicide();
+	}
+	
+	private void Clear(float height,Color color) {
+		for(int x = 0; x < display.sizeX; x++) {
+			for(int y = 0; y < display.sizeY; y++) {
+				display.SetPixelRaw(x,y,height,color);
+			}
+		}
+	}
+	
+	private void DrawWave(float frequency,float centerX,float centerY,float width,float waveScale,Color waveColor) {
 		float t = Time.timeSinceLevelLoad;
-		float r = Mathf.Repeat(t * 15.0f,Mathf.Max(display.sizeX,display.sizeY));
+		float r = Mathf.Repeat(t * frequency,Mathf.Max(display.sizeX,display.sizeY));
 		
 		for(int x = 0; x < display.sizeX; x++) {
-			float dx = (float)x - display.sizeX * 0.5f;
+			float dx = (float)x - centerX;
 			for(int y = 0; y < display.sizeY; y++) {
-				bool isBorder = (x == 0) || (x == display.sizeX - 1) || (y == 0) || (y == display.sizeY - 1);
-				float dy = (float)y - display.sizeY * 0.5f;
+				float dy = (float)y - centerY;
 				
 				float checkRSqr = (dx * dx + dy * dy);
-				float diff = 1.0f - Mathf.Clamp01(Mathf.Abs(checkRSqr - r * r) / 50.0f);
+				float diff = 1.0f - Mathf.Clamp01(Mathf.Abs(checkRSqr - r * r) - (width * width));
 				
-				Color color = (isBorder) ? Color.white : Color.Lerp(Color.white,Color.red,diff);
-				float height = (isBorder) ? 10.0f : diff * 2.0f;
+				if(diff < Mathf.Epsilon) continue;
 				
-				display.SetPixelRaw(x,y,height,color);
+				Color pixelColor = display.GetPixelColor(x,y);
+				Color color = Color.Lerp(pixelColor,waveColor,diff);
+				float height = diff * waveScale;
+				
+				display.SetPixelRaw(x,y,Mathf.Max(display.GetPixelHeight(x,y),height),color);
 			}
 		}
 	}
@@ -184,6 +265,22 @@ public class GameController : MonoSingleton<GameController> {
 				float height = display.GetPixelHeight(x,y);
 				
 				height += angerScale * Mathf.Cos(dx + t) * Mathf.Sin(dy + t);
+				
+				display.SetPixelRaw(x,y,height,color);
+			}
+		}
+	}
+	
+	private void DrawSuicide() {
+		
+		float t = Time.timeSinceLevelLoad;
+		for(int x = 0; x < display.sizeX; x++) {
+			float u = Mathf.Abs((float)x - display.sizeX * 0.5f);
+			for(int y = 0; y < display.sizeY; y++) {
+				float v = Mathf.Abs((float)y - display.sizeY * 0.5f);
+				
+				Color color = Color.black;
+				float height = Mathf.Sin(u - t) * Mathf.Cos(v - t) - Mathf.Max(u,v) * 0.5f;
 				
 				display.SetPixelRaw(x,y,height,color);
 			}
@@ -215,8 +312,23 @@ public class GameController : MonoSingleton<GameController> {
 		for(int x = 0; x < display.sizeX; x++) {
 			for(int y = 0; y < display.sizeY; y++) {
 				Color color = Color.Lerp(Color.red,Color.black,(t * 5.0f) % 1.0f);
-				// float height = Mathf.Sin(x + t) * Mathf.Cos(y + t);
 				float height = Random.Range(-2.0f,2.0f);
+				
+				display.SetPixelRaw(x,y,height,color);
+			}
+		}
+	}
+	
+	private void DrawEncourage() {
+		
+		float t = Time.timeSinceLevelLoad;
+		
+		for(int x = 0; x < display.sizeX; x++) {
+			float dx = (float)x / display.sizeX;
+			for(int y = 0; y < display.sizeY; y++) {
+				float dy = (float)y / display.sizeY;
+				Color color = Color.Lerp(Color.green,Color.black,(t * 5.0f) % 1.0f);
+				float height = 3.0f * Mathf.Cos(dx * 12.0f + t * 2.0f) * Mathf.Sin(dy * 12.0f + t * 3.0f);
 				
 				display.SetPixelRaw(x,y,height,color);
 			}
