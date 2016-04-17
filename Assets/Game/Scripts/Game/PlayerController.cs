@@ -24,7 +24,8 @@ public class PlayerController : MonoBehaviour {
 		movement += cameraRight * Input.GetAxis("Horizontal");
 		movement += cameraForward * Input.GetAxis("Vertical");
 		
-		movement = movement.normalized * movementSpeed;
+		if(movement.sqrMagnitude > 1.0f) movement.Normalize();
+		movement *= movementSpeed;
 		
 		movement.y = cachedBody.velocity.y;
 		

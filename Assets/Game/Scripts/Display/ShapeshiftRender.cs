@@ -6,6 +6,7 @@ public class ShapeshiftRender : MonoBehaviour {
 	public Texture2D texture = null;
 	public bool inverted = false;
 	public float scale = 1.0f;
+	public bool blendColor = false;
 	
 	private ShapeshiftDisplay display = null;
 	
@@ -20,6 +21,7 @@ public class ShapeshiftRender : MonoBehaviour {
 				float v = (float)y / display.sizeY;
 				
 				Color color = texture.GetPixelBilinear(u,v);
+				if(blendColor) color *= display.GetPixelColor(x,y);
 				float height = Mathf.Max(color.r,Mathf.Max(color.g,color.b));
 				if(inverted) height = 1.0f - height;
 				

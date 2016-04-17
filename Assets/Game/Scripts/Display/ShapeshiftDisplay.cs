@@ -47,10 +47,11 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 				
 				Vector3 position = new Vector3(x,0.0f,y) + offset;
 				
-				GameObject bar = GameObject.Instantiate(prefab,position,Quaternion.identity) as GameObject;
+				GameObject bar = GameObject.Instantiate(prefab,Vector3.zero,Quaternion.identity) as GameObject;
 				display[id].bar = bar;
 				display[id].barTransform = bar.GetComponent<Transform>();
 				display[id].barTransform.parent = cachedTransform;
+				display[id].barTransform.localPosition = position;
 				display[id].barMaterial = bar.GetComponentInChildren<Renderer>().material;
 				display[id].barId = Shader.PropertyToID("_Color");
 				display[id].height = 0.0f;
