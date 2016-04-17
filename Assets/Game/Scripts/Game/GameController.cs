@@ -22,7 +22,7 @@ public class GameController : MonoSingleton<GameController> {
 	public float punishScale = 1.0f;
 	public float lavaTime = 30.0f;
 	public float lavaScale = 20.0f;
-	public float initialAngerScale = 1.0f;
+	public float initialAngerLevel = 1.0f;
 	public float angerIncrement = 0.2f;
 	public float angerDecrement = 0.2f;
 	public float angerTime = 5.0f;
@@ -40,14 +40,14 @@ public class GameController : MonoSingleton<GameController> {
 	private float stateTime;
 	private float stateSubTime;
 	private int stateIndex;
-	private float angerScale;
+	private float angerLevel;
 	
 	private void Start() {
 		display = ShapeshiftDisplay.instance;
 		state = GameState.Intro;
 		stateTime = 0.0f;
 		stateIndex = -1;
-		angerScale = initialAngerScale;
+		angerLevel = initialAngerLevel;
 	}
 	
 	private void Update() {
@@ -64,7 +64,7 @@ public class GameController : MonoSingleton<GameController> {
 			case GameState.Suicide: ProcessSuicide(); break;
 		}
 		
-		DrawSanity();
+		ProcessSanity();
 	}
 	
 	private void PreparePunishment() {
@@ -89,13 +89,13 @@ public class GameController : MonoSingleton<GameController> {
 	private void PrepareAnger() {
 		stateTime = angerTime;
 		state = GameState.Anger;
-		angerScale += angerIncrement;
+		angerLevel += angerIncrement;
 	}
 	
 	private void PrepareEncourage() {
 		stateTime = encourageTime;
 		state = GameState.Encourage;
-		angerScale -= angerDecrement;
+		angerLevel -= angerDecrement;
 	}
 	
 	private void PrepareJoke() {
@@ -222,6 +222,13 @@ public class GameController : MonoSingleton<GameController> {
 		DrawSuicide();
 	}
 	
+	private void ProcessSanity() {
+		if(angerLevel > 10.0f) {
+			// TODO: chase player and remove platforms
+		}
+		DrawSanity();
+	}
+	
 	private void Clear(float height,Color color) {
 		for(int x = 0; x < display.sizeX; x++) {
 			for(int y = 0; y < display.sizeY; y++) {
@@ -256,6 +263,8 @@ public class GameController : MonoSingleton<GameController> {
 	private void DrawSanity() {
 		float t = Time.timeSinceLevelLoad;
 		
+		float noiseScale = Mathf.Max(0.0f,angerLevel - initialAngerLevel) / 5.0f;
+		
 		for(int x = 0; x < display.sizeX; x++) {
 			float dx = (float)x / display.sizeX;
 			for(int y = 0; y < display.sizeY; y++) {
@@ -264,7 +273,8 @@ public class GameController : MonoSingleton<GameController> {
 				Color color = display.GetPixelColor(x,y);
 				float height = display.GetPixelHeight(x,y);
 				
-				height += angerScale * Mathf.Cos(dx + t) * Mathf.Sin(dy + t);
+				height += angerLevel * Mathf.Cos(dx + t) * Mathf.Sin(dy + t);
+				height += noiseScale * Random.Range(-1.0f,1.0f);
 				
 				display.SetPixelRaw(x,y,height,color);
 			}
