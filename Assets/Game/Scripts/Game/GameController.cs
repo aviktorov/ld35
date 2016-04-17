@@ -20,6 +20,9 @@ public class GameController : MonoSingleton<GameController> {
 	public AudioClip introSpeech;
 	public AudioClip jokeIntroSpeech;
 	public AudioClip[] jokeSpeeches;
+	public AudioClip[] angerSpeeches;
+	public AudioClip[] encourageSpeeches;
+	public AudioClip[] lavaSpeeches;
 	public float idleTime = 10.0f;
 	public float punishTime = 30.0f;
 	public float punishInterval = 0.2f;
@@ -85,6 +88,7 @@ public class GameController : MonoSingleton<GameController> {
 		stateSubTime = 0.0f;
 		state = GameState.Lava;
 		stateIndex = Random.Range(0,lavaLevels.Length);
+		cameraAudio.PlayOneShot(lavaSpeeches[Random.Range(0,lavaSpeeches.Length)]);
 	}
 	
 	private void PrepareIdle() {
@@ -96,12 +100,14 @@ public class GameController : MonoSingleton<GameController> {
 		stateTime = angerTime;
 		state = GameState.Anger;
 		angerLevel += angerIncrement;
+		cameraAudio.PlayOneShot(angerSpeeches[Random.Range(0,angerSpeeches.Length)]);
 	}
 	
 	private void PrepareEncourage() {
 		stateTime = encourageTime;
 		state = GameState.Encourage;
 		angerLevel -= angerDecrement;
+		cameraAudio.PlayOneShot(encourageSpeeches[Random.Range(0,encourageSpeeches.Length)]);
 	}
 	
 	private void PrepareJoke() {
