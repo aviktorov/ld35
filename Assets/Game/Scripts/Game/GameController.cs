@@ -3,12 +3,13 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 
 public enum GameState {
-	Intro,			// AI explains to player some basic rules
-	Idle,			// some pretty math func with nice colors
-	Punishment,		// stay alive for N seconds
-	Lava,			// don't touch the lava until it'll reach the bottom
+	Intro,			// x AI explains to player some basic rules
+	Idle,			// x some pretty math func with nice colors
+	Punishment,		// x stay alive for N seconds
+	Lava,			// x don't touch the lava until it'll reach the bottom
 	Joke,			// listen for stupid joke and have a choice
 	Encouraging,	// for obeying the AI
+	Anger,			// x for disliking the jokes, failing lava test
 	Suicide,		// AI asks player to commit suicide
 	Bonus			// mario endless?
 }
@@ -23,6 +24,7 @@ public class GameController : MonoSingleton<GameController> {
 	public float lavaScale = 20.0f;
 	public float initialAngerScale = 1.0f;
 	public float angerIncrement = 0.2f;
+	public float angerTime = 5.0f;
 	public Texture2D[] punishmentLevels;
 	public Texture2D[] lavaLevels;
 	public Texture2D[] bonusLevels;
@@ -52,9 +54,10 @@ public class GameController : MonoSingleton<GameController> {
 			case GameState.Idle: ProcessIdle(); break;
 			case GameState.Punishment: ProcessPunishment(); break;
 			case GameState.Lava: ProcessLava(); break;
+			case GameState.Anger: ProcessAnger(); break;
 		}
 		
-		DrawAnger();
+		DrawSanity();
 	}
 	
 	private void PreparePunishment() {
@@ -77,6 +80,11 @@ public class GameController : MonoSingleton<GameController> {
 		state = GameState.Idle;
 	}
 	
+	private void PrepareAnger() {
+		stateTime = angerTime;
+		state = GameState.Anger;
+	}
+	
 	private void ProcessIntro() {
 		Vector3 offset = new Vector3(display.sizeX,0.0f,display.sizeY) * 0.5f;
 		Vector3 distance = playerTransform.position - offset - roomTransform.position;
@@ -92,15 +100,22 @@ public class GameController : MonoSingleton<GameController> {
 	
 	private void ProcessIdle() {
 		if(stateTime < 0.0f) {
-			int decision = Random.Range(0,100);
-			
-			if(decision < 75) PreparePunishment();
-			else PrepareLava();
+			// TODO: suicide, joke
+			PrepareLava();
 			
 			return;
 		}
 		
 		DrawIdle();
+	}
+	
+	private void ProcessAnger() {
+		if(stateTime < 0.0f) {
+			PreparePunishment();
+			return;
+		}
+		
+		DrawAnger();
 	}
 	
 	private void ProcessPunishment() {
@@ -124,9 +139,9 @@ public class GameController : MonoSingleton<GameController> {
 			return;
 		}
 		
-		float lavaLevel = lavaScale * 0.5f * (1.0f - Mathf.Clamp01(stateTime / lavaTime));
+		float lavaLevel = lavaScale * (1.0f - Mathf.Clamp01(stateTime / lavaTime)) - lavaScale * 0.2f;
 		if(PlayerController.instance.OnGround() && playerTransform.position.y < lavaLevel) {
-			PreparePunishment();
+			PrepareAnger();
 			return;
 		}
 		// check if the player touched the lava
@@ -157,7 +172,7 @@ public class GameController : MonoSingleton<GameController> {
 		}
 	}
 	
-	private void DrawAnger() {
+	private void DrawSanity() {
 		float t = Time.timeSinceLevelLoad;
 		
 		for(int x = 0; x < display.sizeX; x++) {
@@ -177,11 +192,31 @@ public class GameController : MonoSingleton<GameController> {
 	
 	private void DrawIdle() {
 		
+		float t = Time.timeSinceLevelLoad;
+		float hue = Mathf.Repeat(t,1.0f);
+		
+		for(int x = 0; x < display.sizeX; x++) {
+			float s = (float)x / display.sizeX;
+			for(int y = 0; y < display.sizeY; y++) {
+				float v = (float)y / display.sizeY;
+				
+				Color color = ColorExt.FromHSV(hue,s,v,1.0f);
+				float height = Mathf.Sin(x + t) * Mathf.Cos(y + t);
+				
+				display.SetPixelRaw(x,y,height,color);
+			}
+		}
+	}
+	
+	private void DrawAnger() {
+		
+		float t = Time.timeSinceLevelLoad;
+		
 		for(int x = 0; x < display.sizeX; x++) {
 			for(int y = 0; y < display.sizeY; y++) {
-				
-				Color color = Color.blue;
-				float height = 0.0f;
+				Color color = Color.Lerp(Color.red,Color.black,(t * 5.0f) % 1.0f);
+				// float height = Mathf.Sin(x + t) * Mathf.Cos(y + t);
+				float height = Random.Range(-2.0f,2.0f);
 				
 				display.SetPixelRaw(x,y,height,color);
 			}
