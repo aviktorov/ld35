@@ -110,6 +110,11 @@ public class ShapeshiftDisplay : MonoSingleton<ShapeshiftDisplay> {
 		display[id].barBody.isKinematic = enabled;
 	}
 	
+	public bool GetPixelEnabled(int x,int y) {
+		int id = index(x,y);
+		return display[id].barBody.isKinematic;
+	}
+	
 	public void SetPixelRaw(int x,int y,float height,Color color) {
 		int id = index(x,y);
 		display[id].height = height;

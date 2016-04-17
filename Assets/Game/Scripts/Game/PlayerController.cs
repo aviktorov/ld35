@@ -7,7 +7,6 @@ public class PlayerController : MonoBehaviour {
 	public float jumpForce = 10.0f;
 	public float slopeThreshold = 0.5f;
 	
-	private ShapeshiftDisplay display;
 	private Rigidbody cachedBody;
 	private Transform cachedTransform;
 	private Transform currentPlatform;
@@ -21,8 +20,8 @@ public class PlayerController : MonoBehaviour {
 	private void Start() {
 		canJump = false;
 		currentPlatform = null;
-		display = ShapeshiftDisplay.instance;
 	}
+	
 	private void Update() {
 		Vector3 cameraRight = Camera.main.transform.right;
 		cameraRight.y = 0;
