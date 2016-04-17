@@ -53,7 +53,7 @@ public class GameController : MonoSingleton<GameController> {
 		Vector3 distance = playerTransform.position - offset - roomTransform.position;
 		distance.y = 0.0f;
 		
-		if(distance.sqrMagnitude < 2.0f) {
+		if(distance.sqrMagnitude < 20.0f) {
 			stateTime = idleTime;
 			state = GameState.Idle;
 			return;
@@ -103,10 +103,10 @@ public class GameController : MonoSingleton<GameController> {
 				float dy = (float)y - display.sizeY * 0.5f;
 				
 				float checkRSqr = (dx * dx + dy * dy);
-				float diff = 1.0f - Mathf.Clamp01(Mathf.Abs(checkRSqr - r * r) / 25.0f);
+				float diff = 1.0f - Mathf.Clamp01(Mathf.Abs(checkRSqr - r * r) / 50.0f);
 				
-				Color color = (isBorder) ? Color.black : Color.red * diff;
-				float height = (isBorder) ? 20.0f : diff * 5.0f;
+				Color color = (isBorder) ? Color.white : Color.Lerp(Color.white,Color.red,diff);
+				float height = (isBorder) ? 10.0f : diff * 2.0f;
 				
 				display.SetPixelRaw(x,y,height,color);
 			}
