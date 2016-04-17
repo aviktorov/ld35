@@ -3,6 +3,8 @@ using System.Collections;
 
 public class PlayerController : MonoSingleton<PlayerController> {
 	
+	public AudioClip[] jumpSfx;
+	
 	public float movementSpeed = 3.0f;
 	public float jumpForce = 10.0f;
 	public float slopeThreshold = 0.5f;
@@ -61,6 +63,7 @@ public class PlayerController : MonoSingleton<PlayerController> {
 			cachedBody.AddForce(Vector3.up * jumpForce,ForceMode.VelocityChange);
 			currentPlatform = null;
 			canJump = false;
+			AudioSource.PlayClipAtPoint(jumpSfx[Random.Range(0,jumpSfx.Length)],cachedTransform.position);
 		}
 	}
 	

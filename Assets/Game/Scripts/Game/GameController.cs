@@ -19,10 +19,12 @@ public class GameController : MonoSingleton<GameController> {
 	public AudioSource cameraAudio;
 	public AudioClip introSpeech;
 	public AudioClip jokeIntroSpeech;
+	public AudioClip suicideSpeech;
 	public AudioClip[] jokeSpeeches;
 	public AudioClip[] angerSpeeches;
 	public AudioClip[] encourageSpeeches;
 	public AudioClip[] lavaSpeeches;
+	public AudioClip[] idleSpeeches;
 	public float idleTime = 10.0f;
 	public float punishTime = 30.0f;
 	public float punishInterval = 0.2f;
@@ -94,6 +96,7 @@ public class GameController : MonoSingleton<GameController> {
 	private void PrepareIdle() {
 		stateTime = idleTime;
 		state = GameState.Idle;
+		cameraAudio.PlayOneShot(idleSpeeches[Random.Range(0,idleSpeeches.Length)]);
 	}
 	
 	private void PrepareAnger() {
@@ -120,6 +123,7 @@ public class GameController : MonoSingleton<GameController> {
 	private void PrepareSuicide() {
 		stateTime = 0.0f;
 		state = GameState.Suicide;
+		cameraAudio.PlayOneShot(suicideSpeech);
 	}
 	
 	private void ProcessIntro() {
